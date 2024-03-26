@@ -6,7 +6,7 @@ authors = [
     {name = "pytestHooksLearn", email = "https://github.com/sensureDk/pytestHooksLearn.git"},
 ]
 dependencies = [
-    "pytest>=8.1.1",
+    "pytest==7.2.0",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
@@ -15,7 +15,16 @@ license = {text = "MIT"}
 
 [tool.pdm]
 distribution = true
+#指定源码路径
+[tool.pdm.build]
+package-dir = "src"
 
+[tool.pdm.dev-dependencies]
+dev = [
+    "black>=24.3.0",#不妥协的代码格式，会自动化
+    "isort>=5.13.2",
+    "flake8>=7.0.0",
+]
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
@@ -23,7 +32,31 @@ build-backend = "pdm.backend"
 #指定插件入口
 [project.entry-points.pytest11]
 result_log = "pytest_result_sender.plugin"
+#脚手架配置——isort
+[tool.isort]
+profile = "black"
+skip = "venv"
+multi_line_output = 3
+#脚手架配置——black
+[tool.black]
+exclude = '''
+/(
+\.git
+|\.hg
+|\.tox
+|\.venv
+|venv
+|buck-out
+|build
+|dist
+)/
 
-#指定源码路径
-[tool.pdm.build]
-package-dir = "src"
+'''
+#脚手架配置：快捷执行脚本命令集
+[tool.pdm.scripts]
+check = {composite = [
+"isort .","black .","flake8 ."
+
+]}
+
+test = "pytest"
