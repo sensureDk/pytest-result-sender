@@ -1,4 +1,4 @@
-
+#_*_coding = UTF8 _*_
 from datetime import datetime
 
 
@@ -8,5 +8,5 @@ def pytest_configure():
 
 
 def pytest_unconfigure():
-	#
+	#测这执行完毕后，配置文件执行完毕后运行
 	print(f"{datetime.now()}执行完毕了")
