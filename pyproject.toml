@@ -59,4 +59,4 @@ check = {composite = [
 
 ]}
 
-test = "pytest"
+test = "pytest -s"
