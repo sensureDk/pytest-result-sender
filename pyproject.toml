@@ -1,0 +1,29 @@
+[project]
+name = "pytest-result-sender"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "pytestHooksLearn", email = "https://github.com/sensureDk/pytestHooksLearn.git"},
+]
+dependencies = [
+    "pytest>=8.1.1",
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = true
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+#指定插件入口
+[project.entry-points.pytest11]
+result_log = "pytest_result_sender.plugin"
+
+#指定源码路径
+[tool.pdm.build]
+package-dir = "src"
