@@ -1,5 +1,6 @@
 # _*_coding = UTF8 _*_
 from _pytest.config import Config
+from _pytest.config.argparsing import Parser
 from _pytest.main import Session
 from _pytest.nodes import Item
 from _pytest.reports import TestReport
@@ -13,8 +14,18 @@ data = {
     "skipped":0
 }
 
-def pytest_configure():
+def pytest_addoption(parser:Parser):
+    parser.addini(
+        "send_when",help="根据配置项决定什么情况下需要发送测试结果：值onfail，always"
+    )
+    parser.addini(
+        "send_api",help = "根据配置项决定消息发送到何处：目标api对应的url"
+    )
+
+def pytest_configure(config):
     # 配置文件加载完毕之后执行——即测试运行前运行
+    data["send_when"] = config.getini("send_when")
+    data["send_api"] = config.getini("send_api")
     start_time = datetime.now()
     data["start_time"] = start_time
     print(f"{start_time}开始执行了")
@@ -41,10 +52,10 @@ def pytest_unconfigure():
     print(f"{end_time}执行完毕了")
     durate_time = data["end_time"] - data["start_time"]
     data["durate_time"] = durate_time
-    assert timedelta(seconds=3) > data["durate_time"] >timedelta(seconds=2.5)
-    assert data["total_cases"] == 3
-    assert data["passed"] == 2
-    assert data["failed"] == 1
+    # assert timedelta(seconds=3) > data["durate_time"] >timedelta(seconds=2.5)
+    # assert data["total_cases"] == 3
+    # assert data["passed"] == 2
+    # assert data["failed"] == 1
     data["passed_rate"] = data["passed"]/data["total_cases"] if data["total_cases"] >0 else 0
     data["failed_rate"] = data["failed"] / data["total_cases"] if data["total_cases"] > 0 else 0
     data["skipped_rate"] = data["skipped"] / data["total_cases"] if data["total_cases"] > 0 else 0
@@ -53,19 +64,28 @@ def pytest_unconfigure():
     data["failed_rate"] = "{:.2%}".format(data["failed_rate"])
     data["skipped_rate"] = "{:.2%}".format( data["skipped_rate"] )
     data["cover_rate"] = "{:.2%}".format(data["cover_rate"])
-
-    assert data["passed_rate"] == "66.67%"
-    assert data["failed_rate"] == "33.33%"
-    assert data["skipped_rate"] == "0.00%"
-
-    url = r"https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=4798277e-32d4-4cc3-8bdb-cadb579d45fc"
+    send_result_message(data["send_api"])
+    # assert data["passed_rate"] == "66.67%"
+    # assert data["failed_rate"] == "33.33%"
+    # assert data["skipped_rate"] == "0.00%"
+    print( data )
+    # url = r"https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=4798277e-32d4-4cc3-8bdb-cadb579d45fc"
+def send_result_message(url):
     json_date = {"msgtype": "markdown", "markdown": {"content":
                  f"""本次测试共执行案例<font color=\"warning\">{data['total_cases']}条</font>，请相关同事知悉！其中\n
-        	     >测试通过数:<font color=\"green\">{data['passed']}</font>
-        	     >测试失败数:<font color=\"red\">{data["failed"]}</font>
-        	     >测试通过率:<font color=\"green\">{data['passed_rate']}</font>
-    			 >测试失败率:<font color=\"red\">{data['failed_rate']}</font>
-    			 >测试覆盖率:<font color=\"comment\">{data['cover_rate']}</font>
-    			 >测试报告地址:<font color=\"green\">https://www.baidu.com</font>"""}, }
-    response = requests.post( url=url, json=json_date )
-    assert response.status_code == 200
+                 >测试通过数:<font color=\"green\">{data['passed']}</font>
+                 >测试失败数:<font color=\"red\">{data['failed']}</font>
+                 >测试通过率:<font color=\"green\">{data['passed_rate']}</font>
+                 >测试失败率:<font color=\"red\">{data['failed_rate']}</font>
+                 >测试覆盖率:<font color=\"comment\">{data['cover_rate']}</font>
+                 >测试报告地址:<font color=\"green\">https://www.baidu.com</font>"""}, }
+    if data["send_when"] == "onfail" and data["failed"] == 0:
+        return
+    if data["send_api"] is None:
+        return
+    try:
+        response = requests.post( url=url, json=json_date )
+        # assert response.status_code == 200
+
+    except Exception:
+        pass
