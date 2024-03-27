@@ -68,7 +68,6 @@ def pytest_unconfigure():
     # assert data["passed_rate"] == "66.67%"
     # assert data["failed_rate"] == "33.33%"
     # assert data["skipped_rate"] == "0.00%"
-    print( data )
     # url = r"https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=4798277e-32d4-4cc3-8bdb-cadb579d45fc"
 def send_result_message(url):
     json_date = {"msgtype": "markdown", "markdown": {"content":
@@ -89,3 +88,4 @@ def send_result_message(url):
 
     except Exception:
         pass
+    data['send_status'] = 1
